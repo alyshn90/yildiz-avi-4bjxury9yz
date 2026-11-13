@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0b1026">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Yıldız Avı">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Yıldız Avı</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--b:#22d3ee;--a:#7c5cff}
+html,body{margin:0;height:100%;background:#0b1026;color:#fff;font-family:"Trebuchet MS",system-ui,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
+#game{position:fixed;inset:0;background:
+radial-gradient(2px 2px at 20% 30%,#fff8,transparent),radial-gradient(2px 2px at 70% 20%,#fff6,transparent),radial-gradient(1.5px 1.5px at 40% 80%,#fff6,transparent),radial-gradient(2px 2px at 85% 65%,#fff8,transparent),
+radial-gradient(circle at 50% -10%,#3b2a8f,#0b1026 70%)}
+#game.flash{animation:fl .4s}
+@keyframes fl{0%{box-shadow:inset 0 0 120px #f23}100%{box-shadow:inset 0 0 0 #f230}}
+#hud{position:absolute;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 0;display:flex;justify-content:space-between;align-items:center;z-index:3}
+.pill{background:rgba(255,255,255,.09);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:8px 15px;font-weight:700;font-size:14px}
+#score{font-size:26px;color:#ffe14d;text-shadow:0 0 14px #ffb400}
+#tag{font-size:12px;letter-spacing:2px;color:var(--b);text-transform:uppercase}
+#field{position:absolute;inset:0}
+.star{position:absolute;font-size:42px;filter:drop-shadow(0 0 10px #ffd34d);animation:pop .25s cubic-bezier(.3,1.8,.5,1);touch-action:manipulation}
+.star.bomb{filter:drop-shadow(0 0 10px #ff3860)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.fx{position:absolute;font-weight:800;font-size:24px;pointer-events:none;animation:up .7s forwards;text-shadow:0 0 8px #000}
+@keyframes up{to{transform:translateY(-55px);opacity:0}}
+#secret{position:fixed;inset:0;background:linear-gradient(#10152b,#0b0f1f);display:none;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);user-select:text;-webkit-user-select:text}
+#secret.on{display:flex}
+.top{display:flex;justify-content:space-between;align-items:center;padding:14px 16px}
+.top b{font-size:20px}.top small{display:block;font-size:12px;color:#8a93b8;margin-top:2px}
+.btn{background:linear-gradient(135deg,var(--a),#4c6fff);color:#fff;border:0;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:700;margin:3px 3px 3px 0}
+.btn.g{background:#232a4d}
+#pg{flex:1;overflow:auto;padding-bottom:20px}
+.card{background:#171c33;border:1px solid #262d52;border-radius:18px;padding:14px;margin:0 12px 12px}
+h4{margin:0 0 10px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#8a93b8}
+.row{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:#1d2342;margin-bottom:6px;border:1px solid transparent}
+.row.act{border-color:var(--b)}
+.row b{width:26px;height:26px;border-radius:8px;background:#2d3562;display:flex;align-items:center;justify-content:center;font-size:13px}
+.row:nth-child(1) b{background:#e0a800;color:#000}.row:nth-child(2) b{background:#aab}.row:nth-child(3) b{background:#b87333}
+.row span{flex:1;letter-spacing:2px;font-weight:700}.row i{font-style:normal;color:#ffe14d;font-size:13px}.row u{text-decoration:none;color:#778;padding:0 4px}
+.em{color:#778;font-size:13px;margin:0}
+#code{width:100%;background:#0f1328;color:#fff;border:1px solid #333a66;border-radius:12px;padding:12px;font-size:20px;letter-spacing:4px;text-align:center;text-transform:uppercase;margin-bottom:6px}
+#qr{background:#fff;padding:12px;border-radius:12px;width:210px;margin:10px auto;display:none}#qr svg{width:100%;height:auto;display:block}
+#vid{display:none;width:100%;border-radius:12px;margin-top:8px}
+.seg{display:flex;gap:6px}.seg button{flex:1;background:#232a4d;color:#aab;border:1px solid transparent;border-radius:12px;padding:10px;font-weight:700}
+.seg button.on{border-color:var(--b);color:#fff;background:#1d3a52}
+#msgs{max-height:38vh;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.m{max-width:85%;padding:7px 10px;border-radius:12px;font-size:13px;word-break:break-word;border:2px solid transparent}
+.me{align-self:flex-end;background:#3b4fc4}.them{align-self:flex-start;background:#262c4d}
+.m small{display:block;opacity:.6;font-size:10px;margin-top:3px}
+.blur span{filter:blur(6px)}.nw{border-color:#ff3b4e}
+#live{min-height:18px;color:#8fa0ff;font-size:12px;font-style:italic;margin-top:4px}
+#row2{display:flex;gap:6px;margin-top:6px}
+#txt{flex:1;background:#0f1328;color:#fff;border:1px solid #333a66;border-radius:12px;padding:10px;font-size:15px}
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="hud"><div class="pill" id="sb">⭐ <span id="score">0</span></div><div id="tag"></div><div class="pill">Sv <span id="lvl">1</span> · 🏆 <span id="best">0</span></div></div>
+  <div id="field"></div>
+</div>
+
+<div id="secret">
+  <div class="top"><div><b>Ayarlar</b><small id="st">bağlı değil</small></div><button class="btn g" id="hide">Kapat</button></div>
+  <div id="pg">
+    <div class="card"><h4>Odalar</h4><div id="board"></div></div>
+    <div class="card"><h4>Yeni oda</h4>
+      <input id="code" maxlength="16" placeholder="ODA KODU" autocomplete="off">
+      <button class="btn" id="connect">Bağlan</button><button class="btn g" id="rand">🎲 Rastgele</button><button class="btn g" id="qrshow">Kare kod</button><button class="btn g" id="qrscan">Tara</button>
+      <div id="qr"></div><p class="em" id="qrh" style="display:none"></p><video id="vid" playsinline muted></video>
+    </div>
+    <div id="conn" hidden>
+      <div class="card"><h4>Oyun modu</h4><div class="seg"><button data-m="solo" class="on">Tek</button><button data-m="race">Yarış</button><button data-m="coop">Ortak</button></div></div>
+      <div class="card"><h4>Bildirimler</h4><div id="msgs"></div><div id="live"></div>
+        <div id="row2"><input id="txt" placeholder="Not ekle..." autocomplete="off"><button class="btn" id="send">Ekle</button></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);v===null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
+const myId=ls('ya-id')||(()=>{const i=Math.random().toString(36).slice(2,10);ls('ya-id',i);return i})();
+let rooms={};try{rooms=JSON.parse(ls('ya-rooms')||'{}')}catch(e){}
+let seen=new Set();try{seen=new Set(JSON.parse(ls('ya-seen')||'[]'))}catch(e){}
+const saveRooms=()=>ls('ya-rooms',JSON.stringify(rooms));
+const markSeen=id=>{seen.add(id);ls('ya-seen',JSON.stringify([...seen].slice(-200)))};
+const secret=$('secret'),field=$('field'),game=$('game'),msgs=$('msgs'),txt=$('txt'),live=$('live');
+let pc=null,dc=null,es=null,helloTimer=null,connecting=false,lastSeen=0,code='',topic='',key=null,peerId='';
+let sc={me:0,op:0},best=0,level=1,mode='solo',taps=0,tapT=0;const objs={};
+const isOpen=()=>!!(dc&&dc.readyState==='open');
+const dsend=o=>{if(isOpen())dc.send(JSON.stringify(o))};
+const online=()=>isOpen()&&mode!=='solo';
+const host=()=>myId<peerId;
+
+// ===== OYUN =====
+function hud(){
+  $('score').textContent=(mode==='race'&&online())?sc.me+' – '+sc.op:sc.me;
+  $('lvl').textContent=level;$('best').textContent=best;
+  $('tag').textContent=online()?(mode==='race'?'Yarış':'Ortak'):'';
+}
+function add(who,d){
+  if(mode==='coop')who='me';
+  sc[who]=Math.max(0,sc[who]+d);
+  const m=Math.max(sc.me,sc.op);
+  if(m>best){best=m;level=1+Math.floor(best/10);if(code&&rooms[code]){rooms[code].best=Math.max(rooms[code].best||0,best);saveRooms()}}
+  hud();
+}
+function fx(s,t,c){const f=document.createElement('div');f.className='fx';f.textContent=t;f.style.cssText='left:'+s.style.left+';top:'+s.style.top+';color:'+c;field.appendChild(f);setTimeout(()=>f.remove(),700)}
+function show(o){
+  if(secret.classList.contains('on'))return;
+  const s=document.createElement('div');s.className='star'+(o.bomb?' bomb':'');
+  s.textContent=o.bomb?'💣':['⭐','🌟','✨'][o.k];
+  s.style.left=o.x*(innerWidth-60)+'px';s.style.top=(90+o.y*(innerHeight-190))+'px';
+  s._o=o;objs[o.id]=s;
+  s.onpointerdown=e=>{e.stopPropagation();take(o.id,true)};
+  field.appendChild(s);setTimeout(()=>{s.remove();delete objs[o.id]},o.life);
+}
+function take(id,mine){
+  const s=objs[id];if(!s)return;const o=s._o;s.remove();delete objs[id];
+  fx(s,o.bomb?'-5':'+1',o.bomb?'#ff5470':'#ffe14d');
+  if(o.bomb&&(mine||mode==='coop')){game.classList.remove('flash');void game.offsetWidth;game.classList.add('flash')}
+  add(mine?'me':'op',o.bomb?-5:1);
+  if(mine&&online())dsend({t:'tp',id});
+}
+(function loop(){
+  if(!secret.classList.contains('on')&&(!online()||host())){
+    const o={id:Math.random().toString(36).slice(2,8),x:Math.random(),y:Math.random(),k:Math.random()*3|0,
+      bomb:Math.random()<Math.min(.35,.14+level*.02),life:Math.max(550,1800-level*100)};
+    show(o);if(online())dsend({t:'sp',o});
+  }
+  setTimeout(loop,Math.max(200,750-level*45));
+})();
+$('sb').onclick=()=>{const n=Date.now();taps=(n-tapT<800)?taps+1:1;tapT=n;if(taps>=7){taps=0;secret.classList.add('on');board()}};
+const hide=()=>{secret.classList.remove('on');$('qr').style.display='none'};
+$('hide').onclick=hide;
+function setMode(m,tell){
+  mode=m;sc={me:0,op:0};
+  document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  if(tell)dsend({t:'md',m});hud();
+}
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>setMode(b.dataset.m,true));
+
+// ===== ŞİFRELEME =====
+const te=new TextEncoder(),td=new TextDecoder();
+const b64=u=>btoa(String.fromCharCode(...u)),unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const hasC=!!(window.crypto&&crypto.subtle);
+async function derive(){
+  if(hasC){
+    const base=await crypto.subtle.importKey('raw',te.encode(code),'PBKDF2',false,['deriveBits']);
+    const u=new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt:te.encode('yildiz-avi-v2'),iterations:100000,hash:'SHA-256'},base,512));
+    topic='ya'+Array.from(u.slice(0,16)).map(x=>x.toString(16).padStart(2,'0')).join('');
+    key=await crypto.subtle.importKey('raw',u.slice(32,64),'AES-GCM',false,['encrypt','decrypt']);
+  }else{topic='ya'+code.toLowerCase();key=null}
+}
+async function enc(o){
+  const s=JSON.stringify(o);if(!key)return b64(te.encode(s));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,te.encode(s)));
+  const out=new Uint8Array(12+ct.length);out.set(iv);out.set(ct,12);return b64(out);
+}
+async function dcr(s){
+  const u=unb64(s);if(!key)return JSON.parse(td.decode(u));
+  return JSON.parse(td.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:u.slice(0,12)},key,u.slice(12))));
+}
+async function post(o,cache){
+  o.from=myId;
+  try{await fetch('https://ntfy.sh/'+topic+(cache?'':'?cache=no'),{method:'POST',body:await enc(o)})}catch(e){}
+}
+
+// ===== BAĞLANTI =====
+function status(t){$('st').textContent=code?code+' · '+t:t;board()}
+const hello=r=>{if(topic)post({t:'hello',reply:!!r},false)};
+function dropPC(){
+  try{dc&&dc.close()}catch(e){}try{pc&&pc.close()}catch(e){}
+  dc=null;pc=null;connecting=false;if(code)status('çevrimdışı');hud();
+}
+function mkPC(){
+  dropPC();connecting=true;
+  pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+  pc.onconnectionstatechange=()=>{if(pc&&['failed','closed'].includes(pc.connectionState))dropPC()};
+  setTimeout(()=>{if(!isOpen()&&connecting)dropPC()},20000);
+}
+const waitICE=()=>new Promise(r=>{
+  if(pc.iceGatheringState==='complete')return r();
+  pc.onicegatheringstatechange=()=>{if(pc.iceGatheringState==='complete')r()};setTimeout(r,3500);
+});
+async function makeOffer(){
+  mkPC();dc=pc.createDataChannel('c');setupDC();
+  await pc.setLocalDescription(await pc.createOffer());await waitICE();
+  post({t:'offer',sdp:pc.localDescription},false);
+}
+async function answerOffer(d){
+  mkPC();pc.ondatachannel=e=>{dc=e.channel;setupDC()};
+  await pc.setRemoteDescription(d.sdp);
+  await pc.setLocalDescription(await pc.createAnswer());await waitICE();
+  post({t:'answer',sdp:pc.localDescription},false);
+}
+function onSig(d){
+  if(!d||d.from===myId)return;
+  if(['hello','offer','answer'].includes(d.t))peerId=d.from;
+  if(d.t==='hello'){if(isOpen()||connecting)return;if(!d.reply)hello(true);if(myId<d.from)makeOffer()}
+  else if(d.t==='offer'){if(myId>d.from&&!isOpen())answerOffer(d)}
+  else if(d.t==='answer'){if(pc&&myId<d.from&&!isOpen())pc.setRemoteDescription(d.sdp).catch(()=>{})}
+  else onData(d);
+}
+async function start(c){
+  c=(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(c.length<4)return alert('Kod en az 4 karakter olmalı');
+  if(es)es.close();dropPC();
+  code=c;$('code').value='';ls('ya-last',c);
+  rooms[c]=rooms[c]||{best:0};rooms[c].t=Date.now();saveRooms();
+  best=rooms[c].best||0;level=1+Math.floor(best/10);setMode('solo',false);
+  $('conn').hidden=false;msgs.innerHTML='';store.clear();
+  await derive();status('oda bekleniyor');
+  es=new EventSource('https://ntfy.sh/'+topic+'/sse?since=1h');
+  es.onmessage=async e=>{try{const m=JSON.parse(e.data);if(m.event==='message')onSig(await dcr(m.message))}catch(err){}};
+  clearInterval(helloTimer);
+  helloTimer=setInterval(()=>{if(!isOpen()&&!connecting)hello(false)},5000);
+  hello(false);
+}
+function forget(c){
+  delete rooms[c];saveRooms();
+  if(c===code){if(es)es.close();clearInterval(helloTimer);dropPC();code='';topic='';$('conn').hidden=true;ls('ya-last',null);status('bağlı değil')}
+  board();
+}
+function setupDC(){
+  dc.onopen=()=>{connecting=false;lastSeen=Date.now();status('bağlı 🟢');if(host())dsend({t:'md',m:mode})};
+  dc.onclose=()=>{if(pc)dropPC()};
+  dc.onmessage=e=>{lastSeen=Date.now();onData(JSON.parse(e.data))};
+}
+setInterval(()=>{if(isOpen()){dsend({t:'ping'});if(Date.now()-lastSeen>10000)dropPC()}},3000);
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)hide();
+  else if(code&&(!es||es.readyState===2))start(code);
+  else if(code&&!isOpen())hello(false);
+});
+
+// ===== VERİ / MESAJLAR (bellekte, 1 saat TTL) =====
+const store=new Map(),TTL=36e5,BURN=30;
+function onData(d){
+  switch(d.t){
+    case 'typing':live.textContent=d.v?'✍️ '+d.v:'';break;
+    case 'msg':incoming(d);break;
+    case 'read':burn(d.id);break;
+    case 'del':del(d.id,false);break;
+    case 'sp':show(d.o);break;
+    case 'tp':take(d.id,false);break;
+    case 'md':setMode(d.m,false);break;
+  }
+}
+function incoming(d){
+  if(seen.has(d.id)||Date.now()-d.ts>TTL)return;
+  markSeen(d.id);live.textContent='';addMsg(d.id,d.text,false,d.ts);
+}
+const rsend=o=>isOpen()?dsend(o):post(o,false);
+function addMsg(id,text,mine,ts){
+  const el=document.createElement('div');el.className='m '+(mine?'me':'them blur nw');
+  el.innerHTML='<span></span><small></small>';el.firstChild.textContent=text;
+  const sm=el.lastChild;sm.textContent=mine?'bekliyor…':'dokun: aç · çift dokun: sil';
+  let last=0;
+  el.onclick=()=>{
+    const n=Date.now();
+    if(n-last<350)return del(id,true);last=n;
+    if(!mine&&el.classList.contains('blur')){el.classList.remove('blur','nw');rsend({t:'read',id});burn(id)}
+  };
+  msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;
+  store.set(id,{el,ts:ts||Date.now(),sm,b:0});
+}
+function del(id,tell){const m=store.get(id);if(m){m.el.remove();store.delete(id)}if(tell)rsend({t:'del',id})}
+function burn(id){
+  const m=store.get(id);if(!m||m.b)return;m.b=1;let n=BURN;
+  const iv=setInterval(()=>{
+    if(!store.has(id))return clearInterval(iv);
+    m.sm.textContent='okundu · '+n+' sn';
+    if(n--<=0){clearInterval(iv);del(id,false)}
+  },1000);
+}
+setInterval(()=>{const now=Date.now();store.forEach((m,id)=>{if(now-m.ts>TTL)del(id,false)})},30000);
+txt.oninput=()=>dsend({t:'typing',v:txt.value});
+function send(){
+  const v=txt.value.trim();if(!v||!code)return;
+  const o={t:'msg',id:Date.now()+Math.random().toString(36).slice(2,6),text:v,ts:Date.now()};
+  markSeen(o.id);
+  if(isOpen()){dsend(o);dsend({t:'typing',v:''})}else post(o,true);
+  addMsg(o.id,v,true,o.ts);if(isOpen())store.get(o.id).sm.textContent='iletildi';
+  txt.value='';
+}
+$('send').onclick=send;txt.onkeydown=e=>{if(e.key==='Enter')send()};
+
+// ===== ARAYÜZ =====
+function board(){
+  const b=$('board');b.innerHTML='';
+  const list=Object.entries(rooms).sort((x,y)=>(y[1].best||0)-(x[1].best||0));
+  if(!list.length){b.innerHTML='<p class="em">Kayıtlı oda yok</p>';return}
+  list.forEach(([c,r],i)=>{
+    const d=document.createElement('div');d.className='row'+(c===code?' act':'');
+    d.innerHTML='<b>'+(i+1)+'</b><span></span><i>🏆 '+(r.best|0)+'</i><u>✕</u>';
+    d.children[1].textContent=c+(c===code?(isOpen()?' 🟢':' ⚪'):'');
+    d.onclick=()=>start(c);
+    d.lastChild.onclick=e=>{e.stopPropagation();forget(c)};
+    b.appendChild(d);
+  });
+}
+$('rand').onclick=()=>{
+  const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';
+  for(const x of crypto.getRandomValues(new Uint8Array(8)))s+=a[x%a.length];
+  $('code').value=s;
+};
+$('connect').onclick=()=>start($('code').value);
+$('qr').onclick=()=>{$('qr').style.display='none'};
+$('qrshow').onclick=()=>{
+  if($('qr').style.display==='block'){$('qr').style.display='none';return}
+  const c=($('code').value||code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(c.length<4)return alert('Önce kod gir, üret ya da bir odaya bağlan');
+  if(typeof qrcode==='undefined')return alert('Kare kod için internet gerekli');
+  const q=qrcode(0,'M');q.addData(c);q.make();$('qr').innerHTML=q.createSvgTag(6,0);$('qr').style.display='block';$('qr').title='Kapatmak için dokun';
+};
+$('qrscan').onclick=async()=>{
+  if(!('BarcodeDetector' in window))return alert('Bu tarayıcı kare kod taramayı desteklemiyor. Kodu elle gir.');
+  try{
+    const v=$('vid'),st=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    v.srcObject=st;v.style.display='block';v.onclick=()=>{st.getTracks().forEach(x=>x.stop());v.style.display='none'};await v.play();
+    const det=new BarcodeDetector({formats:['qr_code']});
+    const t=setInterval(async()=>{
+      try{const r=await det.detect(v);if(r.length){clearInterval(t);st.getTracks().forEach(x=>x.stop());v.style.display='none';start(r[0].rawValue)}}catch(e){}
+    },300);
+  }catch(e){alert('Kamera açılamadı. Kodu elle girebilirsin.')}
+};
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+hud();board();
+{const l=ls('ya-last');if(l&&rooms[l])start(l)}
+</script>
+</body>
+</html>
